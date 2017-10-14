@@ -9,7 +9,10 @@
 
 #include "console.h"
 #include "binaries.h"
-#include "platform.h"
+#include "oldplatform.h"
+#include "ntrcard.h"
+using flashcart_core::Flashcart;
+using flashcart_core::flashcart_list;
 
 // FIXME: not fully overwrite
 u8 orig_flashrom[0xA0000] = {0};
@@ -238,7 +241,7 @@ exit:
 
 int recheckCart(Flashcart *cart) {
     cart->shutdown();
-    reset();
+    flashcart_core::platform::resetCard();
 
     if (cart->initialize()) {
         return true;
@@ -296,7 +299,7 @@ select_cart:
             return 0;
 #endif
         }
-        reset();
+        flashcart_core::platform::resetCard();
         if (cart->initialize()) {
             break;
         }
