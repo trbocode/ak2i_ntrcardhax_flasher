@@ -1,4 +1,4 @@
 [submodule "external/flashcart_core"]
 	path = external/flashcart_core
 	url = https://github.com/angelsl/flashcart_core
-	branch = r4isdhc
+	branch = r4isdhcsq
