@@ -9,7 +9,6 @@
 #include "nds_platform.h"
 
 #include "binaries.h"
-
 using namespace std;
 using namespace flashcart_core;
 
