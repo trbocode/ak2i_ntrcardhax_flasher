@@ -9,10 +9,9 @@
 
 #include "console.h"
 #include "binaries.h"
-#include "oldplatform.h"
-#include "ntrcard.h"
-using flashcart_core::Flashcart;
-using flashcart_core::flashcart_list;
+#include "nds_platform.h"
+
+using namespace flashcart_core;
 
 // FIXME: not fully overwrite
 u8 orig_flashrom[0xA0000] = {0};
@@ -112,7 +111,9 @@ u8 dump(Flashcart *cart) {
     memset(orig_flashrom, 0, 0xA0000);
     u8 *temp = orig_flashrom;
 
-    cart->readFlash(0, length, temp);
+    if (!cart->readFlash(0, length, temp)) {
+        return 1;
+    }
 
 #if defined(DEBUG_DUMP)
     for (int i = 0; i < length; i+=16) {
@@ -162,9 +163,9 @@ int inject(Flashcart *cart) {
         return -1;
     }
 
-    u8 *blowfish_key = deviceType ? blowfish_dev_bin : blowfish_retail_bin;
-    u8 *firm = deviceType ? boot9strap_ntr_dev_firm : boot9strap_ntr_firm;
-    u32 firm_size = deviceType ? boot9strap_ntr_dev_firm_size : boot9strap_ntr_firm_size;
+    const uint8_t *blowfish_key = deviceType ? blowfish_dev_bin : blowfish_retail_bin;
+    const uint8_t *firm = deviceType ? boot9strap_ntr_dev_firm : boot9strap_ntr_firm;
+    const uint32_t firm_size = deviceType ? boot9strap_ntr_dev_firm_size : boot9strap_ntr_firm_size;
 
     consoleSelect(&bottomScreen);
     consoleClear();
@@ -176,6 +177,7 @@ int inject(Flashcart *cart) {
     waitPressA();
     return 0;
 }
+
 int compareBuf(u8 *buf1, u8 *buf2, u32 len) {
     for (uint32_t i = 0; i < len; i++) {
         if (buf1[i] != buf2[i]) {
@@ -240,7 +242,7 @@ exit:
 
 int recheckCart(Flashcart *cart) {
     cart->shutdown();
-    flashcart_core::platform::resetCard();
+    reset();
 
     if (cart->initialize()) {
         return true;
@@ -292,36 +294,47 @@ int main(void) {
 select_cart:
     cart = NULL;
     while (true) {
+      //  ntrcard::init();
         cart = selectCart();
         if (cart == NULL) {
 #ifdef NDSI_MODE
             return 0;
 #endif
         }
-        flashcart_core::platform::resetCard();
+        reset();
         if (cart->initialize()) {
             break;
         }
+        cart->shutdown();
         consoleSelect(&bottomScreen);
         consoleClear();
         iprintf("Flashcart setup failed\n");
         waitPressA();
     }
 
-
 #ifndef NDSI_MODE
-    dump(cart);
+    bool support_restore = true;
+    if (!strcmp(cart->getName(), "R4iSDHC family")) {
+        iprintf("This cart not support restore\n");
+        support_restore = false;
+    }
+
+    if (support_restore && dump(cart)) {
+        iprintf("Flashcart load failed\n");
+        waitPressA();
+        goto select_cart;
+    }
 #endif
 
     while (true) {
 flash_menu:
         consoleSelect(&bottomScreen);
         consoleClear();
-        iprintf("<A> Dump Flash\n");
-        iprintf("<L> Restore Flash\n");
-        iprintf("<Y> Inject ntrboothax\n");
+        iprintf("<A> Inject ntrboothax\n");
 #ifndef NDSI_MODE
-        iprintf("<X> Restore ntrboothax\n");
+        if (support_restore) {
+            iprintf("<X> Restore ntrboothax\n");
+        }
         iprintf("<B> Return\n");
 #else
         iprintf("<B> Exit\n");
@@ -331,21 +344,21 @@ flash_menu:
             scanKeys();
             u32 keys = keysDown();
 
-            if (keys & KEY_Y) {
+            if (keys & KEY_A) {
                 if (recheckCart(cart)) {
                     inject(cart);
                 }
                 break;
             }
 #ifndef NDSI_MODE
-            if (keys & KEY_X) {
+            if (support_restore && (keys & KEY_X)) {
                 if (recheckCart(cart)) {
                     restore(cart);
                 }
                 break;
             }
             if (keys & KEY_B) {
-                if (waitConfirmLostDump()) {
+                if (support_restore && waitConfirmLostDump()) {
                     goto select_cart;
                 }
                 goto flash_menu;
