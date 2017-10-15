@@ -32,7 +32,7 @@ CFLAGS	:=	-g -Wall -O2\
 		$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM9
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -fpermissive
 
 ifneq ($(strip $(DEBUG_DUMP)),)
 	CFLAGS += -DDEBUG_DUMP=$(DEBUG_DUMP)

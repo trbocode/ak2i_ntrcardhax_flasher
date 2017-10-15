@@ -53,7 +53,7 @@ void _sendCommand(const uint8_t *cmdbuf, uint16_t response_len, uint8_t *resp, u
 }
 
 bool platform::sendCommand(const std::uint8_t *cmdbuf, uint16_t response_len, uint8_t *resp, ntrcard::OpFlags flags) {
-    _sendCommand(cmdbuf, response_len, resp, flags.pack());
+    _sendCommand(cmdbuf, response_len, resp, flags);
     return true;
 }
 
@@ -75,7 +75,8 @@ void platform::initBlowfishPS(std::uint32_t (&ps)[ntrcard::BLOWFISH_PS_N], ntrca
     switch (key) {
         default: // blah
         case ntrcard::BlowfishKey::NTR:
-            ptr = reinterpret_cast<void *>(0x01FFE428);
+//            ptr = reinterpret_cast<void *>(0x01FFE428);
+        ptr = reinterpret_cast<void *>(0x0000030);
             break;
         case ntrcard::BlowfishKey::B9RETAIL:
             ptr = blowfish_retail_bin;

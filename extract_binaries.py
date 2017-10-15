@@ -13,7 +13,7 @@ for fn in glob.glob('binaries/*'):
     basename = os.path.basename(fn)
     var_name = basename.replace('.', '_')
     with open(fn, 'rb') as r:
-        strings.append('uint8_t %s[] = {\n' % var_name);
+        strings.append('const uint8_t %s[] = {\n' % var_name);
         buf = r.read()
 
         for idx, x in enumerate(buf):
@@ -21,7 +21,7 @@ for fn in glob.glob('binaries/*'):
             if (idx and ((idx + 1) % 16) == 0):
                 strings.append('\n')
         strings.append('};\n');
-        strings.append('uint32_t %s_size = 0x%X;\n' % (var_name, len(buf)))
+        strings.append('const uint32_t %s_size = 0x%X;\n' % (var_name, len(buf)))
 
 strings += [
     '#ifdef __cplusplus\n',
