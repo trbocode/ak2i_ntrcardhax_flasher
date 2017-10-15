@@ -11,11 +11,7 @@
 #include "binaries.h"
 using namespace std;
 using namespace flashcart_core;
-#define REG_SEEDX_L             (*reinterpret_cast<volatile uint32_t *>(0x40001B0))
-#define REG_SEEDY_L             (*reinterpret_cast<volatile uint32_t *>(0x40001B4))
-#define REG_SEEDX_H             (*reinterpret_cast<volatile uint16_t *>(0x40001B8))
-#define REG_SEEDY_H             (*reinterpret_cast<volatile uint16_t *>(0x40001BA))
-#define REG_ROMCNT              (*reinterpret_cast<volatile uint32_t *>(0x40001A4))
+
 extern const bool HAS_HW_KEY2 = true;
 void _sendCommand(const uint8_t *cmdbuf, uint16_t response_len, uint8_t *resp, uint32_t flags) {
     u8 reversed[8];
@@ -124,15 +120,15 @@ uint32_t getChipID() {
     return chipID;
 }
 void initKey2Seed(uint64_t x, uint64_t y) {
-    REG_ROMCNT = 0;
+    REG_ROMCTRL = 0;
     uint32_t xl = static_cast<uint32_t>(x & 0xFFFFFFFF);
     uint32_t yl = static_cast<uint32_t>(y & 0xFFFFFFFF);
     uint16_t xh = static_cast<uint16_t>((x >> 32) & 0x7F);
     uint16_t yh = static_cast<uint16_t>((y >> 32) & 0x7F);
-    REG_SEEDX_L = xl;
-    REG_SEEDY_L = yl;
-    REG_SEEDX_H = xh;
-    REG_SEEDY_H = yh;
+    REG_CARD_1B0 = xl;
+    REG_CARD_1B4 = yl;
+    REG_CARD_1B8 = xh;
+    REG_CARD_1BA = yh;
     platform::logMessage(LOG_DEBUG, "Seeding KEY2: x = %02X %08X y = %02X %08X", xh, xl, yh, yl);
-    REG_ROMCNT = CARD_nRESET | CARD_SEC_SEED | CARD_SEC_EN | CARD_SEC_DAT;
+    REG_ROMCTRL = CARD_nRESET | CARD_SEC_SEED | CARD_SEC_EN | CARD_SEC_DAT;
 }
