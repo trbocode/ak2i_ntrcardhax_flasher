@@ -307,7 +307,6 @@ select_cart:
         }
         cart->shutdown();
         consoleSelect(&bottomScreen);
-        consoleClear();
         iprintf("Flashcart setup failed\n");
         waitPressA();
     }
