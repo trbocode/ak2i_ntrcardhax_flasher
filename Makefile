@@ -20,6 +20,8 @@ BUILD		:=	build
 SOURCES		:=	source external/flashcart_core external/flashcart_core/devices
 DATA		:=	data
 INCLUDES	:=	include external/flashcart_core
+LIBNCGC := $(CURDIR)/external/libncgc
+
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -31,12 +33,17 @@ CFLAGS	:=	-g -Wall -O2\
 		-ffast-math \
 		$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM9
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -fpermissive
+CFLAGS	+=	$(INCLUDE) -DARM9 			-DNCGC_PLATFORM_NTR
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
 
 ifneq ($(strip $(DEBUG_DUMP)),)
 	CFLAGS += -DDEBUG_DUMP=$(DEBUG_DUMP)
 	CXXFLAGS += -DDEBUG_DUMP=$(DEBUG_DUMP)
+endif
+
+ifneq ($(strip $(DEBUG_PRINT)),)
+	CFLAGS += -DDEBUG_PRINT=$(DEBUG_PRINT)
+	CXXFLAGS += -DDEBUG_PRINT=$(DEBUG_PRINT)
 endif
 
 ifneq ($(strip $(NDSI_MODE)),)
@@ -51,13 +58,13 @@ LDFLAGS	=	-specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project (order is important)
 #---------------------------------------------------------------------------------
-LIBS    := -lfat -lnds9
+LIBS    := -lfat -lnds9 -lncgc
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:=	$(LIBNDS)
+LIBDIRS	:=	$(LIBNDS) $(LIBNCGC)
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
